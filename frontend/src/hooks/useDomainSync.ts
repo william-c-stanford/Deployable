@@ -6,7 +6,8 @@
  * so all connected users see changes in real-time.
  */
 import { useEffect } from "react"
-import { registerSyncDispatcher, type SyncEvent } from "@/hooks/useSyncWebSocket"
+import { registerSyncDispatcher } from "@/hooks/useSyncWebSocket"
+import type { SyncEvent } from "@/stores/syncStore"
 import { useDashboardStore } from "@/stores/dashboardStore"
 import { useTechnicianStore } from "@/stores/technicianStore"
 import { useProjectStore } from "@/stores/projectStore"

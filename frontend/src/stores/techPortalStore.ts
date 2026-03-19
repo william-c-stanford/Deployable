@@ -321,6 +321,7 @@ export const useTechPortalStore = create<TechPortalStore>((set, get) => ({
         id: breakdown.id,
         assignment_id: breakdown.assignment_id,
         technician_id: breakdown.technician_id,
+        submitted_by: breakdown.technician_id,
         skill_weights: breakdown.items.reduce(
           (acc, item) => ({ ...acc, [item.skill_name]: item.hours_applied || 0 }),
           {} as Record<string, number>
@@ -346,6 +347,7 @@ export const useTechPortalStore = create<TechPortalStore>((set, get) => ({
         id: `sb-${Date.now()}`,
         assignment_id: assignmentId,
         technician_id: get().technician?.id || '',
+        submitted_by: get().technician?.id || '',
         skill_weights: data.items.reduce(
           (acc, item) => ({ ...acc, [item.skill_name]: item.hours_applied || 0 }),
           {} as Record<string, number>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -634,7 +634,7 @@ function RuleCard({ rule }: { rule: PreferenceRule }) {
                   {rule.effect === 'exclude' ? 'Hard Filter' : rule.effect === 'boost' ? 'Boost' : 'Soft Demote'}
                 </Badge>
                 <Badge variant="outline" className="capitalize">
-                  {(rule.type || rule.rule_type).replace(/_/g, ' ')}
+                  {rule.rule_type.replace(/_/g, ' ')}
                 </Badge>
                 <span className="text-xs text-muted-foreground">Scope: {rule.scope}</span>
                 {rule.created_by_type === 'agent' && (
@@ -732,7 +732,7 @@ function ActivityLogTab() {
     escalated: 'warning',
   }
 
-  const actionIcons: Record<string, JSX.Element> = {
+  const actionIcons: Record<string, React.ReactElement> = {
     approved: <CheckCircleSmallIcon className="text-success" />,
     rejected: <XCircleIcon className="text-destructive" />,
     dismissed: <MinusCircleIcon className="text-muted-foreground" />,
@@ -802,7 +802,7 @@ function ActivityLogRow({
 }: {
   entry: ActivityLogEntry
   badgeVariant: 'success' | 'destructive' | 'warning' | 'default' | 'secondary' | 'outline'
-  icon?: JSX.Element
+  icon?: React.ReactElement
 }) {
   return (
     <div className="flex gap-4 py-3 px-4 sm:px-6 hover:bg-muted/50 transition-colors">

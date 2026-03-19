@@ -106,7 +106,7 @@ const INITIAL_BADGES: BadgeCounts = {
 };
 
 /** Map event types to badge categories */
-function eventTypeToCategory(eventType: WSEventType): keyof BadgeCounts {
+function eventTypeToCategory(eventType: WSEventType | string): keyof BadgeCounts {
   if (eventType.startsWith("recommendation")) return "recommendations";
   if (eventType.startsWith("confirmation")) return "confirmations";
   if (eventType.startsWith("timesheet")) return "timesheets";
@@ -178,8 +178,8 @@ function wsEventToNotification(event: WSEvent): WSNotification | null {
     "forward_staffing.gap_detected": "warning",
   };
 
-  const title = titleMap[eventType] || "Update";
-  const severity = severityMap[eventType] || "info";
+  const title = titleMap[eventType as WSEventType] || "Update";
+  const severity = severityMap[eventType as WSEventType] || "info";
 
   // Extract a message from the event data
   let message = "";

@@ -85,7 +85,7 @@ export function NextStepCard({ technicianId, fallbackCard }: NextStepCardProps) 
         }
 
         // For recommendation events, check if it's a next_step type
-        const rec = event.recommendation || (event.data as Record<string, unknown>)
+        const rec = event.recommendation || (event.data as unknown as Record<string, unknown>)
         if (rec && (rec as Record<string, unknown>).type === 'next_step') {
           const r = rec as Record<string, unknown>
           const card: NextStepCardType = {

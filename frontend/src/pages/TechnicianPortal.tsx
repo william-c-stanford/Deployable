@@ -422,7 +422,7 @@ export function TechnicianPortal() {
                         </Badge>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {Object.entries(sb.skill_weights).map(([skill, weight]) => (
+                        {Object.entries(sb.skill_weights || {}).map(([skill, weight]) => (
                           <span key={skill} className="text-xs bg-muted px-2 py-1 rounded">
                             {skill}: {typeof weight === 'number' && weight < 1 ? `${Math.round(weight * 100)}%` : `${weight}hrs`}
                           </span>

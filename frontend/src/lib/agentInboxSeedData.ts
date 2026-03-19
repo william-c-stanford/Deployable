@@ -162,7 +162,6 @@ function makeRule(partial: Partial<PreferenceRule> & { id: string; rule_type: st
     approved_at: null,
     created_at: '2026-02-15T10:00:00Z',
     updated_at: null,
-    type: partial.rule_type,
     ...partial,
   }
 }

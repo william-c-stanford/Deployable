@@ -15,3 +15,4 @@
                                                                                                                                                                       
   The project is in a shippable demo state. To push completeness toward 1.0, the next run should target the 3 remaining partial ACs (chat NL for headcount, LLM preference rule proposal, integration smoke test). Want me to queue that up?                                                                                        
                                                                                    
+                                                                                 

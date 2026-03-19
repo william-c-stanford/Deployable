@@ -176,6 +176,7 @@ export const seedSkillBreakdowns: SkillBreakdown[] = [
     id: 'sb-001',
     assignment_id: 'asgn-100',
     technician_id: 'tech-012',
+    submitted_by: 'tech-012',
     skill_weights: {
       'Fiber Splicing': 0.45,
       'OTDR Testing': 0.30,
