@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+alembic
+psycopg2-binary
+pydantic
+python-jose[cryptography]
+redis
+celery
+weasyprint
+jinja2
+langchain
+langchain-core
+langchain-anthropic
+anthropic
+pydantic-settings
+python-multipart

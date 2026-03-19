@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ technician.first_name }} {{ technician.last_name }} — Career Passport | Deployable</title>
+    <meta name="description" content="Career Passport for {{ technician.first_name }} {{ technician.last_name }} — verified technician credentials, skills, and certifications.">
+    <meta name="robots" content="noindex, nofollow">
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-card: #141417;
+            --bg-card-hover: #1a1a1e;
+            --border: #27272a;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --badge-bg: #1e293b;
+            --badge-text: #94a3b8;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+            --font-mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        /* Header */
+        .passport-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 32px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .header-info h1 {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .header-info .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .status-badges {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--badge-bg);
+            color: var(--badge-text);
+        }
+
+        .badge.ready { background: #052e16; color: #4ade80; }
+        .badge.training { background: #1e1b4b; color: #a78bfa; }
+        .badge.assigned { background: #172554; color: #60a5fa; }
+        .badge.warning { background: #451a03; color: #fbbf24; }
+
+        /* Branding bar */
+        .brand-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            margin-bottom: 20px;
+        }
+
+        .brand-logo {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--accent);
+        }
+
+        .brand-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Section cards */
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title .icon {
+            font-size: 18px;
+        }
+
+        /* Summary grid */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+        }
+
+        .summary-item {
+            padding: 14px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .summary-item .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .summary-item .value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        /* Skills */
+        .skill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skill-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .skill-chip .level {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .level-advanced { background: #052e16; color: #4ade80; }
+        .level-intermediate { background: #172554; color: #60a5fa; }
+        .level-apprentice { background: #451a03; color: #fbbf24; }
+
+        /* Certifications table */
+        .cert-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .cert-table th {
+            text-align: left;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cert-table td {
+            padding: 10px 12px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cert-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .cert-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .cert-status.active { color: var(--success); }
+        .cert-status.expired { color: var(--danger); }
+        .cert-status.pending { color: var(--warning); }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .dot.active { background: var(--success); }
+        .dot.expired { background: var(--danger); }
+        .dot.pending { background: var(--warning); }
+
+        /* Badges section */
+        .badge-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .earned-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .earned-badge .badge-icon {
+            font-size: 20px;
+        }
+
+        .earned-badge .badge-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .earned-badge .badge-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .earned-badge .badge-type {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Bio */
+        .bio-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        /* Footer */
+        .passport-footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .passport-footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .passport-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .verified-stamp {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: #052e16;
+            color: #4ade80;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            color: var(--text-muted);
+            font-size: 13px;
+            font-style: italic;
+            padding: 8px 0;
+        }
+
+        /* Training enrollment */
+        .enrollment-card {
+            padding: 14px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .enrollment-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .enrollment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .enrollment-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--accent), #8b5cf6);
+            transition: width 0.3s;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .passport-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .status-badges {
+                justify-content: center;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .cert-table th:nth-child(3),
+            .cert-table td:nth-child(3) {
+                display: none;
+            }
+        }
+
+        /* Error page styles */
+        .error-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .error-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .error-message {
+            color: var(--text-secondary);
+            font-size: 14px;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Brand bar -->
+        <div class="brand-bar">
+            <div class="brand-logo">Deployable</div>
+            <div class="brand-label">Career Passport</div>
+        </div>
+
+        <!-- Header -->
+        <div class="passport-header">
+            <div class="avatar">
+                {{ technician.first_name[0] }}{{ technician.last_name[0] }}
+            </div>
+            <div class="header-info">
+                <h1>{{ technician.first_name }} {{ technician.last_name }}</h1>
+                <div class="subtitle">
+                    {% if technician.home_base_city and technician.home_base_state %}
+                        {{ technician.home_base_city }}, {{ technician.home_base_state }}
+                    {% elif technician.home_base_state %}
+                        {{ technician.home_base_state }}
+                    {% endif %}
+                    {% if technician.years_experience %}
+                        &bull; {{ technician.years_experience|round(1) }} years experience
+                    {% endif %}
+                </div>
+                <div class="status-badges">
+                    {% set ds = technician.deployability_status.value if technician.deployability_status else 'Unknown' %}
+                    {% if ds == 'Ready Now' %}
+                        <span class="badge ready">&#x2713; Ready Now</span>
+                    {% elif ds == 'In Training' %}
+                        <span class="badge training">&#x1F4DA; In Training</span>
+                    {% elif ds == 'Currently Assigned' %}
+                        <span class="badge assigned">&#x1F3D7; Currently Assigned</span>
+                    {% else %}
+                        <span class="badge">{{ ds }}</span>
+                    {% endif %}
+                    {% if technician.archetype %}
+                        <span class="badge">{{ technician.archetype | replace('_', ' ') | title }}</span>
+                    {% endif %}
+                    {% if technician.docs_verified %}
+                        <span class="badge ready">&#x2713; Docs Verified</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Bio -->
+        {% if technician.bio %}
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F4CB;</span> About</div>
+            <p class="bio-text">{{ technician.bio }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Summary Stats -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F4CA;</span> Summary</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="label">Career Stage</div>
+                    <div class="value">{{ technician.career_stage.value if technician.career_stage else 'N/A' }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Projects</div>
+                    <div class="value">{{ technician.total_project_count or 0 }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Approved Hours</div>
+                    <div class="value">{{ (technician.total_approved_hours or 0)|round(0)|int }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Active Skills</div>
+                    <div class="value">{{ skills|length }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Active Certs</div>
+                    <div class="value">{{ active_cert_count }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Badges Earned</div>
+                    <div class="value">{{ badges|length }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skills -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F527;</span> Skills</div>
+            {% if skills %}
+            <div class="skill-list">
+                {% for skill in skills %}
+                <div class="skill-chip">
+                    {{ skill.skill_name }}
+                    {% set level = skill.proficiency_level.value if skill.proficiency_level else 'Apprentice' %}
+                    {% if level == 'Advanced' %}
+                        <span class="level level-advanced">{{ level }}</span>
+                    {% elif level == 'Intermediate' %}
+                        <span class="level level-intermediate">{{ level }}</span>
+                    {% else %}
+                        <span class="level level-apprentice">{{ level }}</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">No skills listed yet.</div>
+            {% endif %}
+        </div>
+
+        <!-- Certifications -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F4DC;</span> Certifications</div>
+            {% if certifications %}
+            <table class="cert-table">
+                <thead>
+                    <tr>
+                        <th>Certification</th>
+                        <th>Status</th>
+                        <th>Expires</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cert in certifications %}
+                    <tr>
+                        <td>{{ cert.cert_name }}</td>
+                        <td>
+                            {% set cs = cert.status.value if cert.status else 'Pending' %}
+                            {% if cs == 'Active' %}
+                                <span class="cert-status active"><span class="dot active"></span> Active</span>
+                            {% elif cs == 'Expired' %}
+                                <span class="cert-status expired"><span class="dot expired"></span> Expired</span>
+                            {% else %}
+                                <span class="cert-status pending"><span class="dot pending"></span> {{ cs }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ cert.expiry_date.strftime('%b %Y') if cert.expiry_date else '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">No certifications listed yet.</div>
+            {% endif %}
+        </div>
+
+        <!-- Training Enrollments -->
+        {% if enrollments %}
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F393;</span> Training Programs</div>
+            {% for enrollment in enrollments %}
+            <div class="enrollment-card">
+                <div class="enrollment-header">
+                    <span class="enrollment-name">{{ enrollment.program.name if enrollment.program else 'Program' }}</span>
+                    <span class="badge">{{ enrollment.advancement_level.value if enrollment.advancement_level else 'Apprentice' }}</span>
+                </div>
+                {% if enrollment.program and enrollment.program.total_hours_required > 0 %}
+                {% set pct = ((enrollment.total_hours_logged or 0) / enrollment.program.total_hours_required * 100) | round(0) | int %}
+                {% set pct = [pct, 100] | min %}
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ pct }}%"></div>
+                </div>
+                <div class="progress-label">
+                    <span>{{ (enrollment.total_hours_logged or 0)|round(1) }} hrs</span>
+                    <span>{{ enrollment.program.total_hours_required|round(0)|int }} hrs required</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Badges -->
+        {% if badges %}
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F3C6;</span> Badges & Achievements</div>
+            <div class="badge-list">
+                {% for badge in badges %}
+                <div class="earned-badge">
+                    <span class="badge-icon">
+                        {% if badge.badge_type.value == 'milestone' %}&#x1F3C5;{% elif badge.badge_type.value == 'site' %}&#x1F4CD;{% else %}&#x2B50;{% endif %}
+                    </span>
+                    <div class="badge-info">
+                        <span class="badge-name">{{ badge.badge_name }}</span>
+                        <span class="badge-type">{{ badge.badge_type.value | title }} Badge</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="passport-footer">
+            <div class="verified-stamp">&#x2713; Verified by Deployable</div>
+            <p>This career passport was generated and verified by <a href="#">Deployable</a>.</p>
+            <p style="margin-top: 4px;">Token expires {{ expires_at.strftime('%B %d, %Y') if expires_at else 'N/A' }}</p>
+        </div>
+    </div>
+</body>
+</html>

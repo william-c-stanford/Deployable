@@ -1,0 +1,141 @@
+x-backend-env: &backend-env
+  DATABASE_URL: postgresql://deployable:deployable@postgres:5432/deployable
+  REDIS_URL: redis://redis:6379/0
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  JWT_SECRET: ${JWT_SECRET:-deployable-demo-secret-key-not-for-production}
+  CORS_ORIGINS: '["http://localhost:3000","http://localhost:80","http://localhost"]'
+
+services:
+  # ── Data stores ────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: deployable
+      POSTGRES_PASSWORD: deployable
+      POSTGRES_DB: deployable
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deployable"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Migrations & seed (run-once init container) ────────────
+  # Uses the existing entrypoint.sh which runs:
+  #   1. alembic upgrade head
+  #   2. seed_all(db)
+  # Then exits with 'true' instead of starting uvicorn.
+  migrate:
+    build:
+      context: ./backend
+    environment:
+      <<: *backend-env
+    entrypoint: ["bash", "/app/migrate_init.sh"]
+    command: []
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── FastAPI backend ────────────────────────────────────────
+  fastapi:
+    build:
+      context: ./backend
+    environment:
+      <<: *backend-env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── Celery worker ──────────────────────────────────────────
+  celery-worker:
+    build:
+      context: ./backend
+    environment:
+      <<: *backend-env
+    entrypoint: []
+    command: >
+      celery -A app.workers.celery_app:celery_app worker
+        --loglevel=info
+        -Q default,training,certification,document,assignment,recommendation,batch,project
+        --concurrency=2
+    volumes:
+      - ./backend:/app
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.workers.celery_app:celery_app inspect ping --timeout 5"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── Celery beat scheduler ──────────────────────────────────
+  celery-beat:
+    build:
+      context: ./backend
+    environment:
+      <<: *backend-env
+    entrypoint: []
+    command: >
+      celery -A app.workers.celery_app:celery_app beat
+        --loglevel=info
+    volumes:
+      - ./backend:/app
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # ── React Vite dev server ──────────────────────────────────
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      fastapi:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redisdata:
+  frontend_node_modules:

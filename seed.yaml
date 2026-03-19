@@ -1,0 +1,450 @@
+goal: Build Deployable, a fully functional agent-native workforce operating system
+  for fiber/data center technicians with autonomous background recommendation agents,
+  a conversational chat sidebar that drives UI navigation, real-time WebSocket updates,
+  and role-scoped views for ops users, technicians, and partners — using React + shadcn/ui
+  frontend, FastAPI + SQLAlchemy backend, PostgreSQL, Redis, Celery workers, and LangChain
+  Deep Agents orchestrator with tiered Claude models
+task_type: code
+brownfield_context:
+  project_type: greenfield
+  context_references: []
+  existing_patterns: []
+  existing_dependencies: []
+constraints:
+- React + Vite frontend with shadcn/ui components and Tailwind CSS and Zustand state
+  management
+- FastAPI Python backend with SQLAlchemy ORM and Alembic migrations
+- PostgreSQL database
+- Redis message queue with Celery workers and Celery beat for scheduled tasks
+- LangChain Deep Agents orchestration layer with single orchestrator routing to specialized
+  sub-agents
+- 'Tiered model selection: Claude Haiku for background agents and routing, Claude
+  Sonnet for conversational and NL parsing'
+- No autonomous state mutations except deterministic training advancement based on
+  hours thresholds
+- All agent reads and writes go through FastAPI REST API endpoints, never direct DB
+  access
+- 'Monorepo structure: /frontend, /backend, /agents, docker-compose.yml'
+- Docker Compose for local one-command startup plus cloud deployment configs for Railway
+  or Render
+- Seeded demo with role switcher and JWT-based scoping, no real auth system
+- Dark mode primary theme with light mode toggle, both shipping in initial build
+- SSE for chat streaming with token-by-token delivery, WebSocket for background pushes
+  with topic-based subscriptions
+- Career passport PDF via server-side WeasyPrint, shareable link via Jinja2 server-rendered
+  page
+- 'Comprehensive test suite with pytest: unit tests for scoring logic, integration
+  tests for agent workflows, API endpoint tests'
+- Auto-generated OpenAPI/Swagger docs at /docs
+- 'Mobile-responsive: technician portal mobile-first, ops screens desktop-optimized,
+  partner view tablet-friendly'
+- Brand name is Deployable with field-operations aesthetic
+acceptance_criteria:
+- '7 ops-facing screens functional: Ops Dashboard with clickable KPI cards, Technician
+  Directory with search/filter, Technician Profile with full edit surface, Training
+  Pipeline with kanban and drill-in skill matrix, Project Staffing with list and detail
+  modes and tabbed layout, Agent Inbox with Pending/Active Rules/Activity Log tabs,
+  plus Technician Portal'
+- Conversational chat sidebar accessible from every screen with persistent per-user
+  chat history, markdown text responses, and UI command execution via fixed manifest
+  schema updating browser URL state
+- Background reactive agents fire on UI events (training completion, cert update,
+  doc verification, assignment changes) and produce recommendations via Celery workers
+- Nightly Celery beat batch job re-evaluates all technician readiness with smart merge
+  of existing recommendations
+- 'Staffing Sub-Agent performs hybrid ranking: SQL/Python deterministic pre-filtering
+  with preference rule weight modifiers producing top-20, then LLM re-ranking with
+  structured 5-dimension scorecard plus NL explanation'
+- Real-time WebSocket push updates recommendation lists, notification badges, and
+  multi-user state sync with topic-based subscriptions and toast attribution
+- Partner headcount requests via structured form or NL message parsed by conversational
+  agent with two-path confirmation, creating PendingHeadcountRequest requiring ops
+  approval before role slot creation
+- Technician training advancement auto-triggers at 100 approved hours to Intermediate
+  and 300 to Advanced with optional per-skill cert gates
+- Deployability status auto-computed from objective data with locked manual overrides
+  for Inactive and auto-resolving transitional states
+- Partner confirmation flow for assignment start/end with 48-hour advance visibility,
+  24-hour escalation window to Project Staffing Page
+- Weekly hours submission by technicians, partner approve/flag flow, flagged timesheets
+  to ops dispute section on Project Staffing Page
+- Assignment-end skill breakdown submission by technicians with partner review integrated
+  into hours approval flow
+- Career passport PDF export and shareable public URL with 30-day expiring token,
+  revocable by ops or technician
+- Preference rules proposed by agent on rejection, editable inline by ops before approval,
+  stored as predefined template types applied in SQL scoring layer, with immediate
+  re-evaluation on rule changes
+- 'Role switcher with two-level control: role type then account selector with archetype
+  labels, simulating full logout/login with new JWT and fresh connections'
+- 'Seed data: 50+ technicians across all deployability states and archetypes, 8-10
+  projects across lifecycle stages with explicit start dates, multiple partners with
+  multi-project capability, 15-20 skills taxonomy, industry-standard certifications'
+- Chat-driven incremental UI filtering with current_ui_state payload sent with each
+  message
+- Forward staffing with 90-day chaining of current plus pre-booked assignments
+- Project cannot close with active assignments, open timesheets, or unresolved escalations
+- 'Two badge types on profiles: manually granted site/client badges and auto-generated
+  milestone badges from coarse project/hours/role data'
+- Your Next Step card on tech portal and Suggested Actions widget on ops dashboard,
+  nightly-generated and event-updated
+ontology_schema:
+  name: DeployableWorkforceOS
+  description: Domain model for an agent-native workforce operating system managing
+    fiber and data center technicians across recruitment, training, certification,
+    project staffing, time tracking, and partner collaboration
+  fields:
+  - name: technician_id
+    type: string
+    description: Unique identifier for a technician
+    required: true
+  - name: technician_name
+    type: string
+    description: Full name of the technician
+    required: true
+  - name: home_base_city
+    type: string
+    description: Technician home base city
+    required: true
+  - name: approved_regions
+    type: array
+    description: List of states/regions the technician is willing to work in
+    required: true
+  - name: career_stage
+    type: string
+    description: Manual ops-set stage in recruitment pipeline (Sourced, Screened,
+      In Training, Training Completed, Awaiting Assignment, Deployed)
+    required: true
+  - name: deployability_status
+    type: string
+    description: Auto-computed current readiness (Ready Now, In Training, Currently
+      Assigned, Missing Cert, Missing Docs, Rolling Off Soon, Inactive)
+    required: true
+  - name: deployability_locked
+    type: boolean
+    description: Whether deployability is manually locked by ops (true for Inactive
+      overrides)
+    required: true
+  - name: available_from
+    type: string
+    description: Date when technician becomes available for new assignment
+    required: true
+  - name: skills
+    type: array
+    description: List of skill objects with skill_name, proficiency_level (Beginner/Intermediate/Advanced),
+      and training_hours_accumulated
+    required: true
+  - name: certifications
+    type: array
+    description: List of cert objects with cert_name, issue_date, expiry_date, and
+      status
+    required: true
+  - name: documents
+    type: array
+    description: List of required document objects with doc_type and verification_status
+      (Not Submitted, Pending Review, Verified, Expired)
+    required: true
+  - name: site_badges
+    type: array
+    description: Manually granted site/client experience badges
+    required: true
+  - name: milestone_badges
+    type: array
+    description: Auto-generated achievement badges from project history and hours
+      data
+    required: true
+  - name: project_id
+    type: string
+    description: Unique identifier for a project
+    required: true
+  - name: project_name
+    type: string
+    description: Name of the project
+    required: true
+  - name: project_status
+    type: string
+    description: Lifecycle stage (Draft, Staffing, Active, Wrapping Up, Closed)
+    required: true
+  - name: project_location_region
+    type: string
+    description: State or region where the project is located
+    required: true
+  - name: project_start_date
+    type: string
+    description: Required start date for the project
+    required: true
+  - name: partner_id
+    type: string
+    description: Unique identifier for a partner company
+    required: true
+  - name: partner_name
+    type: string
+    description: Partner company name
+    required: true
+  - name: role_id
+    type: string
+    description: Unique identifier for a project role slot
+    required: true
+  - name: role_name
+    type: string
+    description: Named role on a project (e.g., Lead Splicer, Fiber Tech)
+    required: true
+  - name: role_skill_bundle
+    type: array
+    description: Required skills with minimum proficiency levels for this role
+    required: true
+  - name: role_required_certs
+    type: array
+    description: Named certifications required for this role
+    required: true
+  - name: role_skill_weights
+    type: object
+    description: Skill distribution weights for hours attribution on this role
+    required: true
+  - name: assignment_id
+    type: string
+    description: Unique identifier for a technician-to-role assignment
+    required: true
+  - name: assignment_start_date
+    type: string
+    description: Assignment start date
+    required: true
+  - name: assignment_end_date
+    type: string
+    description: Assignment end date
+    required: true
+  - name: assignment_hourly_rate
+    type: number
+    description: Negotiated hourly rate for this placement
+    required: true
+  - name: assignment_per_diem
+    type: number
+    description: Per diem amount for travel days
+    required: true
+  - name: assignment_type
+    type: string
+    description: Whether this is active or pre-booked future assignment
+    required: true
+  - name: timesheet_id
+    type: string
+    description: Unique identifier for a weekly hours submission
+    required: true
+  - name: timesheet_hours
+    type: number
+    description: Hours submitted for a given week
+    required: true
+  - name: timesheet_status
+    type: string
+    description: Status of timesheet (Submitted, Approved, Flagged, Resolved)
+    required: true
+  - name: timesheet_flag_comment
+    type: string
+    description: Partner comment when flagging hours
+    required: true
+  - name: skill_breakdown_id
+    type: string
+    description: Identifier for technician-submitted skill distribution on completed
+      assignment
+    required: true
+  - name: skill_breakdown_weights
+    type: object
+    description: Technician-proposed skill weight distribution
+    required: true
+  - name: skill_breakdown_status
+    type: string
+    description: Partner review status (Pending, Approved, Rejected, Defaulted)
+    required: true
+  - name: recommendation_id
+    type: string
+    description: Unique identifier for an agent-generated recommendation
+    required: true
+  - name: recommendation_type
+    type: string
+    description: Type of recommendation (staffing, training, cert_renewal, backfill,
+      next_step)
+    required: true
+  - name: recommendation_scorecard
+    type: object
+    description: 5-dimension scoring with pass/warn/fail per dimension
+    required: true
+  - name: recommendation_explanation
+    type: string
+    description: Natural language explanation of recommendation
+    required: true
+  - name: recommendation_status
+    type: string
+    description: Current state (Pending, Approved, Rejected, Dismissed, Superseded)
+    required: true
+  - name: recommendation_agent
+    type: string
+    description: Which sub-agent generated this recommendation
+    required: true
+  - name: preference_rule_id
+    type: string
+    description: Unique identifier for an approved preference rule
+    required: true
+  - name: preference_rule_type
+    type: string
+    description: Template type (experience_threshold, skill_level_minimum, cert_required,
+      region_preference, project_history, recency)
+    required: true
+  - name: preference_rule_threshold
+    type: string
+    description: Configurable threshold value for the rule
+    required: true
+  - name: preference_rule_scope
+    type: string
+    description: Global or scoped to client/project type
+    required: true
+  - name: preference_rule_effect
+    type: string
+    description: Hard filter (exclude) or soft adjustment (demote)
+    required: true
+  - name: pending_headcount_request_id
+    type: string
+    description: Identifier for partner headcount requests awaiting ops approval
+    required: true
+  - name: pending_headcount_role
+    type: string
+    description: Requested role type
+    required: true
+  - name: pending_headcount_quantity
+    type: number
+    description: Number of positions requested
+    required: true
+  - name: pending_headcount_start_date
+    type: string
+    description: Requested start date
+    required: true
+  - name: pending_headcount_constraints
+    type: string
+    description: Additional constraints from NL or structured input
+    required: true
+  - name: audit_log_entry
+    type: object
+    description: Record of who approved/rejected what, when, which agent generated
+      it, and rejection reason
+    required: true
+  - name: chat_history
+    type: array
+    description: Persistent per-user conversation history with summarization for long
+      conversations
+    required: true
+  - name: confirmation_item
+    type: object
+    description: Partner assignment start/end confirmation with scheduled date, confirmation
+      status, and escalation state
+    required: true
+  - name: user_id
+    type: string
+    description: Unique identifier for a system user (ops, technician, or partner)
+    required: true
+  - name: user_role
+    type: string
+    description: Role type (ops, technician, partner)
+    required: true
+  - name: user_scoped_to
+    type: string
+    description: For technicians their tech ID, for partners their partner company
+      ID
+    required: true
+  - name: ui_command
+    type: object
+    description: Structured UI action command from agent (navigate, apply_filters,
+      highlight_records, open_detail, prefill_form)
+    required: true
+  - name: next_step_card
+    type: object
+    description: Pre-computed most impactful action for technician portal with action
+      description and reasoning
+    required: true
+  - name: suggested_actions
+    type: array
+    description: Pre-computed top 3-5 high-signal items for ops dashboard widget
+    required: true
+evaluation_principles:
+- name: agent_recommendation_quality
+  description: Staffing agent produces accurate, well-ranked candidate recommendations
+    with clear 5-dimension scorecards and actionable NL explanations that differentiate
+    between candidates
+  weight: 0.2
+- name: real_time_responsiveness
+  description: WebSocket pushes, SSE chat streaming, and reactive event chains complete
+    within seconds so ops sees domino effects of edits propagate through the system
+    in real time
+  weight: 0.15
+- name: human_approval_gate_integrity
+  description: No autonomous state mutations occur except deterministic training advancement;
+    all other state changes require human approval via click, with consistent enforcement
+    across all workflows
+  weight: 0.15
+- name: data_scoping_and_role_security
+  description: JWT-based access control correctly scopes data visibility and write
+    permissions per role type across both UI and agent-initiated API calls, with partners
+    never seeing internal ops data
+  weight: 0.1
+- name: conversational_agent_accuracy
+  description: Chat sidebar correctly parses queries, applies incremental UI filters
+    with URL state updates, reads pre-computed data, and produces accurate markdown
+    responses with appropriate UI commands from the manifest
+  weight: 0.1
+- name: seed_data_realism
+  description: Demo dataset of 50+ technicians, 8-10 projects, and partners feels
+    realistic with diverse archetypes, meaningful differentiation for agent ranking,
+    and representative industry skills and certifications
+  weight: 0.08
+- name: preference_rule_learning_loop
+  description: Rejection feedback correctly proposes editable preference rules, approved
+    rules translate to SQL scoring modifiers, and rule changes trigger immediate recommendation
+    re-evaluation
+  weight: 0.07
+- name: smart_merge_recommendation_lifecycle
+  description: Nightly batch correctly refreshes scores, removes disqualified candidates,
+    adds new qualifiers, and never resurfaces dismissed or acted-on recommendations
+  weight: 0.05
+- name: mobile_responsiveness
+  description: Technician portal and hours form are mobile-first with large touch
+    targets, chat sidebar collapses to full-screen overlay on mobile, career passport
+    links render cleanly on phones
+  weight: 0.05
+- name: end_to_end_workflow_completeness
+  description: All described flows work without stubbing or mocking
+  weight: 1.0
+exit_conditions:
+- name: full_feature_completion
+  description: All described features are implemented end-to-end without stubbing
+    or mocking
+  criteria: All 7+ screens render with correct data and interactions; chat sidebar
+    streams responses and executes UI commands; background agents produce recommendations
+    via Celery; WebSocket pushes update all connected clients; PDF export generates
+    branded documents; role switcher simulates full identity switch; seed data loads
+    via Alembic migration
+- name: docker_compose_startup
+  description: Single command brings up the entire system in a demo-ready state
+  criteria: docker-compose up starts FastAPI, React dev server, PostgreSQL, Redis,
+    Celery worker, Celery beat, runs schema and data migrations, and produces a fully
+    seeded environment accessible at localhost
+- name: test_suite_passes
+  description: Comprehensive pytest suite validates all critical logic paths
+  criteria: Unit tests pass for scoring logic and preference rule application; integration
+    tests pass for Celery task execution and event chain reactions; API endpoint tests
+    pass for all FastAPI routes; test database is used for integration tests
+- name: agent_orchestration_functional
+  description: LangChain Deep Agents orchestrator correctly routes to sub-agents and
+    produces structured outputs
+  criteria: Staffing Sub-Agent returns ranked candidates with scorecards; Training
+    Sub-Agent detects advancement thresholds; Cert Monitor Sub-Agent flags expiring
+    certs; Conversational Sub-Agent streams chat responses and emits UI commands;
+    Orchestrator routes events and messages to correct sub-agent
+- name: real_time_sync_operational
+  description: Multi-user real-time updates work via WebSocket topic subscriptions
+  criteria: State changes by one ops user are reflected live for other ops users viewing
+    the same screen; notification badge counts update without page refresh; topic-based
+    subscriptions filter events server-side via Redis pub/sub
+metadata:
+  seed_id: seed_e9df7da058ee
+  version: 1.0.0
+  created_at: '2026-03-18T16:29:48.616001Z'
+  ambiguity_score: 0.128
+  interview_id: interview_20260318_021401
+  parent_seed_id: null
