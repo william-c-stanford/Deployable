@@ -9,8 +9,8 @@ Base.metadata.create_all(engine)
 print("Schema ready.")
 PYEOF
 
-echo "==> Running Alembic migrations..."
-alembic upgrade heads || echo "Migration skipped (already at head or non-fatal error)"
+echo "==> Stamping Alembic to heads (marks all migrations as applied)..."
+alembic stamp heads 2>/dev/null || true
 
 echo "==> Seeding database..."
 python - <<'PYEOF'
